@@ -1,0 +1,18 @@
+from flask import Flask, jsonify, request
+import redis
+import json
+
+app = Flask(__name__)
+
+# Conexión a Redis
+r = redis.Redis(host='redis', port=6379)
+
+@app.route('/events', methods=['GET'])
+def get_events():
+    count = int(request.args.get('count', 10))  # ?count=20
+    raw_events = r.zrevrange('event_log', 0, count - 1)
+    events = [json.loads(e.decode()) for e in raw_events]
+    return jsonify(events)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
