@@ -4,6 +4,12 @@ import json
 
 app = Flask(__name__)
 
+from flask import redirect
+
+@app.route('/')
+def index():
+    return redirect('/events', code=302)
+
 # Conexión a Redis
 r = redis.Redis(host='redis', port=6379)
 

@@ -1,0 +1,63 @@
+services:
+  zookeeper:
+    healthcheck:
+      test: ["CMD-SHELL","bash -lc '</dev/tcp/127.0.0.1/2181'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
+
+  kafka:
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL","bash -lc '</dev/tcp/127.0.0.1/9092'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  redis:
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - redis-data:/data
+    command: ["redis-server","--appendonly","yes","--save","60","1000","--maxmemory","256mb","--maxmemory-policy","allkeys-lru"]
+
+  event-generator:
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  event-consumer:
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  event-viewer:
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  automatic-generator:
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+volumes:
+  zookeeper-data:
+  zookeeper-log:
+  kafka-data:
+  redis-data:
