@@ -1,3 +1,8 @@
+import os
+from itertools import cycle
+CLIENTS = os.getenv("CLIENT_IDS", "client1,client2,client3,client4").split(",")
+CLIENTS = [c.strip() for c in CLIENTS if c.strip()]
+client_iter = cycle(CLIENTS)
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable, KafkaTimeoutError, KafkaError
 import json
@@ -19,16 +24,17 @@ def connect_producer():
             time.sleep(5)
 
 def main():
-    actions = ['login', 'purchase', 'logout', 'click', 'view']
+    actions = ['login', 'purchase', 'logout']
     producer = connect_producer()
     print("[INFO] Iniciando generación automática de eventos cada 2 segundos...")
 
     while True:
         event = {
-            "user": f"user_auto_{datetime.utcnow().strftime('%Y%m%dT%H%M%S')}",
-            "action": random.choice(actions),
-            "timestamp": datetime.utcnow().isoformat()
-        }
+           "user": next(client_iter),     # <— antes era user_auto_...
+           "action": random.choice(actions),
+           "timestamp": datetime.utcnow().isoformat()
+}
+
         try:
             producer.send("events", event)
             producer.flush()
