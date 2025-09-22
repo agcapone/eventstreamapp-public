@@ -26,7 +26,7 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
-    <h2>Últimos {{ count }} eventos</h2>
+    <h2>Últimos {{ count }} eventos (cambio1)</h2>
     <table>
         <thead>
             <tr>
